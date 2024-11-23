@@ -3,6 +3,7 @@ package br.com.fiap.core.usecases;
 import br.com.fiap.core.entities.Produto;
 import br.com.fiap.core.enums.ProdutoCategoriaEnum;
 import br.com.fiap.core.exceptions.BusinessException;
+import br.com.fiap.core.exceptions.ViolacaoDominioExcecao;
 import br.com.fiap.core.gateways.ProdutoRepositoryGateway;
 import br.com.fiap.core.gateways.ProdutoServiceGateway;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import static java.util.Objects.isNull;
 
 public class ProdutoUseCase implements ProdutoServiceGateway {
 
@@ -97,6 +99,13 @@ public class ProdutoUseCase implements ProdutoServiceGateway {
             throw new BusinessException("Não foi possível excluir. Produto não encontrado.");
         }
         return produtoRepositoryGateway.excluir(produto);
+    }
+
+    @Override
+    public Produto obterPorId(String id) {
+        Produto produto = produtoRepositoryGateway.getProdutoById(id);
+
+        return produto;
     }
 
 }
