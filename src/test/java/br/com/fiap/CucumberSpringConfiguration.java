@@ -1,0 +1,10 @@
+package br.com.fiap;
+
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@CucumberContextConfiguration
+@SpringBootTest(classes = ProdutoServiceApplication.class)
+public class CucumberSpringConfiguration {
+
+}
