@@ -1,6 +1,7 @@
 package br.com.fiap.infrastructure.controllers;
 
 import br.com.fiap.core.entities.Produto;
+import br.com.fiap.core.exceptions.ViolacaoDominioExcecao;
 import br.com.fiap.core.gateways.ProdutoServiceGateway;
 import br.com.fiap.infrastructure.controllers.commands.AlterarProdutoCommand;
 import br.com.fiap.infrastructure.controllers.commands.CriarProdutoCommand;
@@ -57,6 +58,28 @@ public class ProdutoController {
     @DeleteMapping("/{id}")
     public ProdutoDto excluir(@PathVariable("id") String id) {
         return ProdutoPresenter.converterProdutoToDto(produtoServiceGateway.excluir(id));
+    }
+
+    @Operation(summary = "Obter um produto pelo id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Buscado com sucesso", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Produto.class))}),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos", content = @Content),
+            @ApiResponse(responseCode = "412", description = "Erro de negócio na busca.", content = @Content)})
+    @GetMapping("/{id}/produto")
+    public ProdutoDto obterPorId(@PathVariable("id") String id) {
+        Produto produto = produtoServiceGateway.obterPorId(id);
+
+        if (produto == null) {
+            throw new ViolacaoDominioExcecao("Produto não encontrado na base!");
+        }
+
+        return ProdutoPresenter.converterProdutoToDto(produto);
+    }
+
+    @GetMapping("/{id}/teste")
+    public String teste(@PathVariable("id") String id) {
+       return "Weiller";
     }
 
     @Operation(summary = "Retornar uma lista de produtos pela categoria")

@@ -14,4 +14,5 @@ public interface ProdutoServiceGateway {
 
     Produto excluir(String id);
 
+    Produto obterPorId(String id);
 }
