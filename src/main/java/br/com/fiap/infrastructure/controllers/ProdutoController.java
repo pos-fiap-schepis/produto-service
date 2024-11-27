@@ -1,7 +1,7 @@
 package br.com.fiap.infrastructure.controllers;
 
 import br.com.fiap.core.entities.Produto;
-import br.com.fiap.core.exceptions.ViolacaoDominioExcecao;
+import br.com.fiap.infrastructure.exceptions.ViolacaoDominioExcecao;
 import br.com.fiap.core.gateways.ProdutoServiceGateway;
 import br.com.fiap.infrastructure.controllers.commands.AlterarProdutoCommand;
 import br.com.fiap.infrastructure.controllers.commands.CriarProdutoCommand;

@@ -1,4 +1,4 @@
-package br.com.fiap.core.exceptions;
+package br.com.fiap.infrastructure.exceptions;
 
 public class ViolacaoDominioExcecao extends RuntimeException {
 

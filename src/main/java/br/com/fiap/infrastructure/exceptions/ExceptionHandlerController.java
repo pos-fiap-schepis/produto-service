@@ -1,4 +1,4 @@
-package br.com.fiap.core.exceptions;
+package br.com.fiap.infrastructure.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
