@@ -1,6 +1,6 @@
 # produto-service
 
-O Produto Service é um serviço responsável por gerenciar produtos em um sistema de fast food. Ele permite criar, atualizar, listar e excluir prodotos.
+O Produto Service é um serviço responsável por gerenciar produtos em um sistema de fast food. Ele permite criar, atualizar, listar e excluir produtos.
 
 
 ### Requisitos
