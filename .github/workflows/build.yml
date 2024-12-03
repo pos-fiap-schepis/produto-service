@@ -47,6 +47,7 @@ jobs:
           ECR_PATH=$(aws ecr describe-repositories --repository-names "${{ github.repository }}" --query "repositories[0].repositoryUri" --output text)
           echo "ECR_PATH=$ECR_PATH" >> $GITHUB_ENV
 
+
       - name: Fazer build do projeto e análise SonarQube
         run: |
           mvn install sonar:sonar \
