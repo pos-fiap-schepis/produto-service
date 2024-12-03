@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-produto-api
+  labels:
+    app: pod-produto-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-produto-api
+  template:
+    metadata:
+      labels:
+        app: pod-produto-api
+    spec:
+      containers:
+        - name: backend-produto-api
+          image: 975714002932.dkr.ecr.us-east-1.amazonaws.com/pos-fiap-schepis/produto-service:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+          env:
+            - name: RDS_HOSTNAME
+              value: $RDS_HOSTNAME
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: RDS_PORT
+              value: "5432"
+            - name: RDS_USERNAME
+              value: postgres
+            - name: RDS_PASSWORD
+              value: postgres
+            - name: PROFILE
+              value: prd

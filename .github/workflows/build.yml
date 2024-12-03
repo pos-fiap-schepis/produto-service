@@ -1,22 +1,117 @@
-name: Deploy
+name: Deploy Aplicação produto
 
 on:
-   push:
+  push:
     branches: [main]
 
-jobs: 
-    build:
-        runs-on: ubuntu-latest
+jobs:
+  build:
+    name: Build and Push Docker Image to ECR
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
 
-            - name: Fazendo configuracao do java
-              uses: actions/setup-java@v3
-              with:
-                distribution: "zulu"
-                java-version: "21"
+      - name: Configurar Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "17"
 
-            - name: Fazendo build do projeto
-              run: mvn clean install && ls
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: 'us-east-1'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Verificar existência do repositório ECR
+        id: check_repo
+        run: |
+          if aws ecr describe-repositories --repository-names "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_ENV
+          else
+            echo "exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Criar repositório no ECR se não existir
+        if: env.exists == 'false'
+        run: |
+          aws ecr create-repository --repository-name "${{ github.repository }}"
+
+      - name: Obter URI do repositório ECR
+        id: ecr_path
+        run: |
+          ECR_PATH=$(aws ecr describe-repositories --repository-names "${{ github.repository }}" --query "repositories[0].repositoryUri" --output text)
+          echo "ECR_PATH=$ECR_PATH" >> $GITHUB_ENV
+
+      - name: Fazer build do projeto e análise SonarQube
+        run: |
+          mvn install sonar:sonar \
+          -Dsonar.projectKey=produto-service \
+          -Dsonar.host.url=http://a9e3de64ba6eb43ad92cf1043915d4cd-372195639.us-east-1.elb.amazonaws.com:9000/ \
+          -Dsonar.login=sqa_f3ef8b27b41c89175caad03e239c8923adff56a3
+
+      - name: Logar no Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Construir imagem Docker
+        run: |
+          docker build -t ${{ github.repository }}:${{ github.sha }} .
+          docker tag ${{ github.repository }}:${{ github.sha }} $ECR_PATH:latest
+
+      - name: Push da imagem para o Amazon ECR
+        run: |
+          docker push $ECR_PATH:latest
+
+  deploy:
+    name: Deploy to EKS Cluster
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: 'us-east-1'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Obter endpoint do RDS e atualizar YAML
+        run: |
+          export RDS_HOSTNAME=$(aws rds describe-db-instances --db-instance-identifier postgres-db-fast-food --query "DBInstances[0].Endpoint.Address" --output text)
+          echo $RD_HOSTNAME
+          yq eval '(.spec.template.spec.containers[].env[] | select(.name == "RDS_HOSTNAME")).value = env(RDS_HOSTNAME)' -i k8s/pod-produto-api.yaml
+
+      - name: Atualizar configuração kubeconfig para EKS
+        run: |
+          aws eks update-kubeconfig --name fast-food-eks-cluster --region ${{ secrets.AWS_REGION }}
+
+      - name: Obter URI do repositório ECR
+        id: ecr_path
+        run: |
+          ECR_PATH=$(aws ecr describe-repositories --repository-names "${{ github.repository }}" --query "repositories[0].repositoryUri" --output text)
+          echo "ECR_PATH=$ECR_PATH" >> $GITHUB_ENV
+
+      - name: Aplicar configurações Kubernetes
+        run: |
+          kubectl apply -f k8s/config-map-postgres.yaml
+          kubectl apply -f k8s/hpa-api.yaml
+          kubectl apply -f k8s/metrics.yaml
+          kubectl apply -f k8s/pod-api.yaml
+          kubectl apply -f k8s/svc-api.yaml
+
+      - name: Atualizar imagem no deployment Kubernetes
+        run: |
+          kubectl set image deployment/pod-produto-api backend-produto-api=$ECR_PATH:latest
+
+      - name: Forçar atualização dos pods
+        run: |
+          echo "Forçando atualização do pod..."
+          kubectl rollout restart deployment/pod-produto-api

@@ -112,18 +112,49 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<!-- Maven Surefire Plugin for Tests -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0</version>
 				<configuration>
-					<!-- Inclua testes com o padrão Cucumber -->
+					<!-- Include Cucumber tests -->
 					<includes>
 						<include>**/*Test.java</include>
 						<include>**/*Tests.java</include>
 						<include>**/Test.class</include>
 					</includes>
 				</configuration>
+			</plugin>
+
+			<!-- Jacoco Maven Plugin for Code Coverage -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.8</version>
+				<executions>
+					<!-- Attach Jacoco agent to collect coverage data -->
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- Generate Jacoco report -->
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Sonar Maven Plugin for SonarQube Integration -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>4.0.0.4121</version>
 			</plugin>
 		</plugins>
 	</build>
