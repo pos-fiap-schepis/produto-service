@@ -87,7 +87,7 @@ jobs:
         run: |
           export RDS_HOSTNAME=$(aws rds describe-db-instances --db-instance-identifier postgres-db-fast-food --query "DBInstances[0].Endpoint.Address" --output text)
           echo $RD_HOSTNAME
-          yq eval '(.spec.template.spec.containers[].env[] | select(.name == "RDS_HOSTNAME")).value = env(RDS_HOSTNAME)' -i k8s/pod-produto-api.yaml
+          yq eval '(.spec.template.spec.containers[].env[] | select(.name == "RDS_HOSTNAME")).value = env(RDS_HOSTNAME)' -i k8s/pod-api.yaml
 
       - name: Atualizar configuração kubeconfig para EKS
         run: |
