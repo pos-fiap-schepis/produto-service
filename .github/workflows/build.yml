@@ -51,8 +51,8 @@ jobs:
         run: |
           mvn install sonar:sonar \
           -Dsonar.projectKey=produto-service \
-          -Dsonar.host.url=http://a9e3de64ba6eb43ad92cf1043915d4cd-372195639.us-east-1.elb.amazonaws.com:9000/ \
-          -Dsonar.login=sqa_f3ef8b27b41c89175caad03e239c8923adff56a3
+          -Dsonar.host.url=${{ secrets.SONAR_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Logar no Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
