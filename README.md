@@ -40,3 +40,6 @@ Para executar os testes BDD com Cucumber, utilize o comando:
 ```sh
 mvn test
 ```
+
+## Sonar
+![Sonar](sonar-produto.png)
